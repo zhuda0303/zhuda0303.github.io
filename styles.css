@@ -404,11 +404,14 @@ a:focus-visible {
   font-variant-numeric: lining-nums tabular-nums;
 }
 
+/* 숫자만 동일 글꼴로 고정: Chrome에서 run/폴백이 달라지며 2만 작게 보이는 현상 방지 */
 .metric-value .metric-num {
-  font-family: var(--font-display), "Times New Roman", serif;
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: normal;
   font-size: 1em;
+  unicode-bidi: isolate;
 }
 
 .metric-note {
