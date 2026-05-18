@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var header = document.getElementById("top");
+  var header = document.getElementById("site-top");
   var navToggle = document.getElementById("navToggle");
   var navLinks = document.querySelectorAll("[data-nav]");
 
@@ -44,6 +44,31 @@
       history.pushState(null, "", href);
     });
   });
+
+  /* 맨 위로: #top 은 일부 브라우저에서 예약된 프래그먼트로 취급될 수 있어 #site-top + 스크롤 보강 */
+  function scrollToPageTop(e) {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    var reduceMotion =
+      window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var behavior = reduceMotion ? "auto" : "smooth";
+    window.scrollTo({ top: 0, left: 0, behavior: behavior });
+    closeMobileNav();
+    try {
+      history.pushState(null, "", "#site-top");
+    } catch (err) {
+      try {
+        location.hash = "#site-top";
+      } catch (err2) {
+        /* file:// 등에서 해시 설정이 막힐 수 있음 — 스크롤만으로 충분 */
+      }
+    }
+  }
+
+  var scrollTopLink = document.getElementById("scroll-to-top-link");
+  if (scrollTopLink) {
+    scrollTopLink.addEventListener("click", scrollToPageTop, true);
+  }
 
   function setActiveNav(id) {
     navLinks.forEach(function (link) {
