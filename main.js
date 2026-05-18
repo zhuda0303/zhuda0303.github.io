@@ -12,6 +12,33 @@
     })
     .filter(Boolean);
 
+  /* 내비 클릭 후 smooth scroll 동안 IO가 이웃 섹션을 골라 is-active 가 옮겨가는 현상 방지 */
+  var navJumpLock = false;
+  var navJumpTimer = null;
+  var navJumpScrollEndHandler = null;
+
+  function releaseNavJumpLock() {
+    navJumpLock = false;
+    if (navJumpTimer) {
+      clearTimeout(navJumpTimer);
+      navJumpTimer = null;
+    }
+    if (navJumpScrollEndHandler) {
+      window.removeEventListener("scrollend", navJumpScrollEndHandler);
+      navJumpScrollEndHandler = null;
+    }
+  }
+
+  function armNavJumpLock() {
+    releaseNavJumpLock();
+    navJumpLock = true;
+    navJumpScrollEndHandler = function () {
+      releaseNavJumpLock();
+    };
+    window.addEventListener("scrollend", navJumpScrollEndHandler, { passive: true });
+    navJumpTimer = setTimeout(releaseNavJumpLock, 2000);
+  }
+
   function setNavOpen(open) {
     if (!header || !navToggle) return;
     header.classList.toggle("is-nav-open", open);
@@ -39,6 +66,11 @@
       var target = document.querySelector(href);
       if (!target) return;
       e.preventDefault();
+      var id = href.slice(1);
+      if (sectionIds.indexOf(id) !== -1) {
+        setActiveNav(id);
+        armNavJumpLock();
+      }
       target.scrollIntoView({ behavior: "smooth", block: "start" });
       closeMobileNav();
       history.pushState(null, "", href);
@@ -84,6 +116,7 @@
   if ("IntersectionObserver" in window && sections.length) {
     var observer = new IntersectionObserver(
       function (entries) {
+        if (navJumpLock) return;
         var visible = entries
           .filter(function (en) {
             return en.isIntersecting;
